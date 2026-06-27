@@ -13,9 +13,30 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
-  // Enable CORS for frontend clients
+  // Enable CORS for frontend clients dynamically
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173"
+  ];
+
+  if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL.replace(/\/$/, ""));
+  }
+
   app.use(cors({
-    origin: ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true
   }));
 
