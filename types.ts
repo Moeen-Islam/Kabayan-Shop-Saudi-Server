@@ -1,0 +1,99 @@
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  description: string;
+  images: string[];
+  price: number;
+  offerPrice?: number;
+  stock: number;
+  sizes: string[];
+  colors: string[];
+  packageTypes: string[];
+  packagePrices?: Record<string, number>;
+  status: "active" | "draft";
+  createdAt: string;
+  hasDualSizes?: boolean;
+  dualSizesTitle1?: string;
+  dualSizesTitle2?: string;
+  sizes2?: string[];
+  colorImageMap?: Record<string, string>;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  price: number;
+  selectedColor: string;
+  selectedSize: string;
+  selectedPackageType: string;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  createdAt: string;
+  customerName: string;
+  whatsapp: string;
+  areaId: string;
+  areaName: string;
+  houseNo: string;
+  fullAddress: string;
+  notes?: string;
+  lat?: number;
+  lng?: number;
+  mapLink?: string;
+  items: OrderItem[];
+  productTotal: number;
+  deliveryCharge: number;
+  discountAmount?: number;
+  grandTotal: number;
+  status: "Pending" | "Confirmed" | "Packed" | "Shipped" | "Delivered" | "Cancelled";
+}
+
+export interface DeliveryArea {
+  id: string;
+  name: string;
+  charge: number;
+  freeDeliveryAbove?: number | null;
+  minOrderValue?: number | null;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  expiryDate: string;
+}
+
+export interface ShopSettings {
+  shopName: string;
+  whatsappContact: string; // Admin whatsapp number e.g. "966500000000"
+  currency: string;
+  bannerImages: string[];
+  aboutUs?: string;
+  contactEmail?: string;
+  contactAddress?: string;
+}
+
+export interface DashboardStats {
+  totalOrders: number;
+  pendingOrders: number;
+  confirmedOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  salesByDay: { date: string; amount: number }[];
+  ordersByDay: { date: string; count: number }[];
+}
