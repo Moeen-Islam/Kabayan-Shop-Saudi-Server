@@ -84,6 +84,10 @@ export interface ShopSettings {
   aboutUs?: string;
   contactEmail?: string;
   contactAddress?: string;
+  metaPixelId?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
 }
 
 export interface DashboardStats {
