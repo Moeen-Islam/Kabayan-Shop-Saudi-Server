@@ -367,6 +367,8 @@ async function startServer() {
       images,
       price,
       offerPrice,
+      purchasePrice,
+      rating,
       stock,
       sizes,
       colors,
@@ -396,6 +398,8 @@ async function startServer() {
       images: images && images.length > 0 ? images : ["https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200"],
       price: Number(price),
       offerPrice: offerPrice ? Number(offerPrice) : undefined,
+      purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
+      rating: rating !== undefined ? Number(rating) : undefined,
       stock: Number(stock),
       sizes: sizes || ["Free Size"],
       colors: colors || ["Multi"],
@@ -430,6 +434,8 @@ async function startServer() {
       ...req.body,
       price: req.body.price !== undefined ? Number(req.body.price) : currentProduct.price,
       offerPrice: req.body.offerPrice !== undefined ? (req.body.offerPrice ? Number(req.body.offerPrice) : undefined) : currentProduct.offerPrice,
+      purchasePrice: req.body.purchasePrice !== undefined ? (req.body.purchasePrice ? Number(req.body.purchasePrice) : undefined) : currentProduct.purchasePrice,
+      rating: req.body.rating !== undefined ? (req.body.rating ? Number(req.body.rating) : undefined) : currentProduct.rating,
       stock: req.body.stock !== undefined ? Number(req.body.stock) : currentProduct.stock,
     };
 

@@ -23,6 +23,7 @@ export interface Product {
   colorImageMap?: Record<string, string>;
   purchasePrice?: number;
   isTrending?: boolean;
+  rating?: number;
 }
 
 export interface Category {
