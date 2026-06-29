@@ -174,7 +174,16 @@ async function startServer() {
 
   app.post("/api/settings", adminAuth, (req, res) => {
     const db = getDb();
-    db.settings = { ...db.settings, ...req.body };
+    const updates = { ...req.body };
+
+    if (updates.adminEmail !== undefined && (!updates.adminEmail || String(updates.adminEmail).trim() === "")) {
+      delete updates.adminEmail;
+    }
+    if (updates.adminPassword !== undefined && (!updates.adminPassword || String(updates.adminPassword).trim() === "")) {
+      delete updates.adminPassword;
+    }
+
+    db.settings = { ...db.settings, ...updates };
     saveDb(db);
     res.json({ success: true, settings: db.settings });
   });
@@ -225,7 +234,7 @@ async function startServer() {
 
   app.post("/api/areas", adminAuth, (req, res) => {
     const db = getDb();
-    const { name, charge, freeDeliveryAbove, minOrderValue } = req.body;
+    const { name, charge, driverCharge, deliveryTime, freeDeliveryAbove, minOrderValue } = req.body;
     if (!name || charge === undefined) {
       return res.status(400).json({ error: "Name and charge are required" });
     }
@@ -234,6 +243,8 @@ async function startServer() {
       id: "area-" + Date.now(),
       name,
       charge: Number(charge),
+      driverCharge: driverCharge !== undefined && driverCharge !== null && driverCharge !== "" ? Number(driverCharge) : 0,
+      deliveryTime: deliveryTime || "",
       freeDeliveryAbove: freeDeliveryAbove !== undefined && freeDeliveryAbove !== null && freeDeliveryAbove !== "" ? Number(freeDeliveryAbove) : null,
       minOrderValue: minOrderValue !== undefined && minOrderValue !== null && minOrderValue !== "" ? Number(minOrderValue) : null
     };
@@ -246,7 +257,7 @@ async function startServer() {
   app.put("/api/areas/:id", adminAuth, (req, res) => {
     const db = getDb();
     const { id } = req.params;
-    const { name, charge, freeDeliveryAbove, minOrderValue } = req.body;
+    const { name, charge, driverCharge, deliveryTime, freeDeliveryAbove, minOrderValue } = req.body;
 
     const areaIndex = db.areas.findIndex(a => a.id === id);
     if (areaIndex === -1) {
@@ -257,6 +268,8 @@ async function startServer() {
       ...db.areas[areaIndex],
       name: name !== undefined ? name : db.areas[areaIndex].name,
       charge: charge !== undefined ? Number(charge) : db.areas[areaIndex].charge,
+      driverCharge: driverCharge !== undefined ? (driverCharge !== null && driverCharge !== "" ? Number(driverCharge) : 0) : db.areas[areaIndex].driverCharge,
+      deliveryTime: deliveryTime !== undefined ? deliveryTime : db.areas[areaIndex].deliveryTime,
       freeDeliveryAbove: freeDeliveryAbove !== undefined ? (freeDeliveryAbove !== null && freeDeliveryAbove !== "" ? Number(freeDeliveryAbove) : null) : db.areas[areaIndex].freeDeliveryAbove,
       minOrderValue: minOrderValue !== undefined ? (minOrderValue !== null && minOrderValue !== "" ? Number(minOrderValue) : null) : db.areas[areaIndex].minOrderValue
     };
