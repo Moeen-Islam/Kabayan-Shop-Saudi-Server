@@ -112,9 +112,13 @@ async function startServer() {
 
       fs.writeFileSync(filePath, imageBuffer);
 
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+      const host = req.headers["x-forwarded-host"] || req.get("host");
+      const imageUrl = `${protocol}://${host}/uploads/${finalFilename}`;
+
       res.json({
         success: true,
-        imageUrl: `/uploads/${finalFilename}`
+        imageUrl
       });
     } catch (err: any) {
       console.error("Upload error:", err);

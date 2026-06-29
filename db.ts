@@ -20,7 +20,11 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: "cat-4", name: "Denim", slug: "denim" },
   { id: "cat-5", name: "Shoes", slug: "shoes" },
   { id: "cat-6", name: "T-Shirts", slug: "t-shirts" },
-  { id: "cat-7", name: "Night Wear", slug: "night-wear" }
+  { id: "cat-7", name: "Night Wear", slug: "night-wear" },
+  { id: "cat-8", name: "Luggage", slug: "luggage" },
+  { id: "cat-9", name: "Combo Pack", slug: "combo-pack" },
+  { id: "cat-10", name: "Cosmetics", slug: "cosmetics" },
+  { id: "cat-11", name: "Watch", slug: "watch" }
 ];
 
 const DEFAULT_AREAS: DeliveryArea[] = [

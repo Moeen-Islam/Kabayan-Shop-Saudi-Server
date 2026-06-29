@@ -35,6 +35,26 @@
       "id": "cat-7",
       "name": "Night Wear",
       "slug": "night-wear"
+    },
+    {
+      "id": "cat-8",
+      "name": "Luggage",
+      "slug": "luggage"
+    },
+    {
+      "id": "cat-9",
+      "name": "Combo Pack",
+      "slug": "combo-pack"
+    },
+    {
+      "id": "cat-10",
+      "name": "Cosmetics",
+      "slug": "cosmetics"
+    },
+    {
+      "id": "cat-11",
+      "name": "Watch",
+      "slug": "watch"
     }
   ],
   "orders": [],
