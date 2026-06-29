@@ -40,7 +40,19 @@ npm run build
 ---
 
 ## 💾 Persistent Storage Configuration
-To prevent your products and orders from resetting when the server container sleeps or redeploys, you must mount a **Persistent Volume**:
+To prevent your products and orders from resetting when the server container sleeps or redeploys, you have two options:
+
+### Option A: Free MongoDB Atlas (Recommended for Render Free Tier)
+Since Render's free tier does not support persistent disks, you can connect a free MongoDB Atlas cluster:
+1. Create a free shared cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Copy your connection string (e.g. `mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority`).
+3. Add an environment variable to your server host dashboard:
+   * **Key**: `MONGO_URI`
+   * **Value**: (Your MongoDB connection string)
+4. On startup, the server automatically connects, seeds your default configurations from `db.json`, and caches reads/writes in memory for maximum speed.
+
+### Option B: Persistent Disk Volume (Requires Paid Render/Railway Instance)
+If you are using a paid instance type that supports disks:
 1. Mount a volume at path `/data`.
 2. Add an environment variable to your server host dashboard:
    * **Key**: `DB_PATH`
@@ -53,4 +65,4 @@ To prevent your products and orders from resetting when the server container sle
 1. **Root Directory**: `server`
 2. **Build Command**: `npm install && npm run build`
 3. **Start Command**: `npm run start` (which triggers `node dist/server.cjs`)
-4. Configure necessary environment variables in your server provider console (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DB_PATH`, `PORT`).
+4. Configure necessary environment variables in your server provider console (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `MONGO_URI` or `DB_PATH`, `PORT`).

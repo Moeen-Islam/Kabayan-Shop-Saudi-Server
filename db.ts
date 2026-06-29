@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { MongoClient } from "mongodb";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings } from "./types";
 
 const DB_FILE = process.env.DB_PATH || path.join(process.cwd(), "db.json");
@@ -214,7 +215,47 @@ const DEFAULT_PRODUCTS: Product[] = [
   }
 ];
 
-export function getDb(): DatabaseSchema {
+// Virtual Memory Cache state
+let dbCache: DatabaseSchema | null = null;
+let mongoClient: MongoClient | null = null;
+let useMongo = false;
+
+export async function initDatabase() {
+  if (process.env.MONGO_URI) {
+    try {
+      console.log("Connecting to MongoDB Atlas...");
+      mongoClient = new MongoClient(process.env.MONGO_URI);
+      await mongoClient.connect();
+      useMongo = true;
+      console.log("Connected to MongoDB successfully!");
+
+      const db = mongoClient.db("kabayan_shop");
+      const collection = db.collection("datastore");
+      const doc = await collection.findOne({ _id: "master" });
+
+      if (doc) {
+        dbCache = doc.data as DatabaseSchema;
+        console.log("Database loaded from MongoDB Atlas.");
+      } else {
+        // Seed database from local db.json
+        const localDb = loadLocalDb();
+        await collection.insertOne({ _id: "master", data: localDb });
+        dbCache = localDb;
+        console.log("Initialized new database document in MongoDB Atlas.");
+      }
+    } catch (err) {
+      console.error("Failed to connect to MongoDB, falling back to local file storage:", err);
+      useMongo = false;
+      dbCache = loadLocalDb();
+    }
+  } else {
+    console.log("MONGO_URI not specified. Using local file storage.");
+    useMongo = false;
+    dbCache = loadLocalDb();
+  }
+}
+
+function loadLocalDb(): DatabaseSchema {
   if (!fs.existsSync(DB_FILE)) {
     const defaultDb: DatabaseSchema = {
       products: DEFAULT_PRODUCTS,
@@ -224,7 +265,7 @@ export function getDb(): DatabaseSchema {
       coupons: DEFAULT_COUPONS,
       settings: DEFAULT_SETTINGS
     };
-    saveDb(defaultDb);
+    saveLocalDb(defaultDb);
     return defaultDb;
   }
   try {
@@ -251,10 +292,34 @@ export function getDb(): DatabaseSchema {
   }
 }
 
-export function saveDb(db: DatabaseSchema) {
+function saveLocalDb(db: DatabaseSchema) {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
   } catch (error) {
     console.error("Error saving database file", error);
+  }
+}
+
+export function getDb(): DatabaseSchema {
+  if (!dbCache) {
+    dbCache = loadLocalDb();
+  }
+  return dbCache;
+}
+
+export function saveDb(db: DatabaseSchema) {
+  dbCache = db;
+  if (useMongo && mongoClient) {
+    const database = mongoClient.db("kabayan_shop");
+    const collection = database.collection("datastore");
+    collection.updateOne(
+      { _id: "master" },
+      { $set: { data: db } },
+      { upsert: true }
+    ).catch(err => {
+      console.error("Failed to save database to MongoDB:", err);
+    });
+  } else {
+    saveLocalDb(db);
   }
 }

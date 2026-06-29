@@ -3,13 +3,16 @@ import path from "path";
 import fs from "fs";
 import cors from "cors";
 import dotenv from "dotenv";
-import { getDb, saveDb } from "./db";
+import { getDb, saveDb, initDatabase } from "./db";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, DashboardStats } from "./types";
 
 // Load environment variables from .env file
 dotenv.config();
 
 async function startServer() {
+  // Initialize database (connects and loads MongoDB document cache if MONGO_URI is configured)
+  await initDatabase();
+
   const app = express();
   const PORT = process.env.PORT || 5000;
 
