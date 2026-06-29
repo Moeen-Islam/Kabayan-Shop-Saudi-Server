@@ -760,9 +760,12 @@ async function startServer() {
       return o.grandTotal - totalCost - (o.driverDeliveryCharge || 0);
     };
 
-    const totalProfit = activeOrders.reduce((sum, o) => sum + calculateOrderProfit(o), 0);
+    // Monthly and Total Profit only includes DELIVERED orders
+    const deliveredOrdersList = orders.filter(o => o.status === "Delivered");
 
-    const monthlyProfit = activeOrders
+    const totalProfit = deliveredOrdersList.reduce((sum, o) => sum + calculateOrderProfit(o), 0);
+
+    const monthlyProfit = deliveredOrdersList
       .filter(o => o.createdAt.startsWith(currentMonthStr))
       .reduce((sum, o) => sum + calculateOrderProfit(o), 0);
 
