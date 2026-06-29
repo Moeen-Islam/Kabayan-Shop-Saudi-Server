@@ -2,7 +2,26 @@ import fs from "fs";
 import path from "path";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings } from "./types";
 
-const DB_FILE = path.join(process.cwd(), "db.json");
+const DB_FILE = process.env.DB_PATH || path.join(process.cwd(), "db.json");
+
+// Ensure parent directories exist
+const dbDir = path.dirname(DB_FILE);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+// Copy default workspace template if persistent database file is not yet created
+if (!fs.existsSync(DB_FILE)) {
+  const defaultTemplate = path.join(process.cwd(), "db.json");
+  if (fs.existsSync(defaultTemplate)) {
+    try {
+      fs.copyFileSync(defaultTemplate, DB_FILE);
+      console.log(`Initialized database: Copied template seed data to ${DB_FILE}`);
+    } catch (err) {
+      console.error(`Failed to copy seed database to ${DB_FILE}:`, err);
+    }
+  }
+}
 
 interface DatabaseSchema {
   products: Product[];
