@@ -223,37 +223,45 @@ let mongoClient: MongoClient | null = null;
 let useMongo = false;
 
 export async function initDatabase() {
-  if (process.env.MONGO_URI) {
-    try {
-      console.log("Connecting to MongoDB Atlas...");
-      mongoClient = new MongoClient(process.env.MONGO_URI);
-      await mongoClient.connect();
-      useMongo = true;
-      console.log("Connected to MongoDB successfully!");
+  // Load local DB synchronously first so the server has data immediately
+  dbCache = loadLocalDb();
 
-      const db = mongoClient.db("kabayan_shop");
-      const collection = db.collection("datastore");
-      const doc = await collection.findOne({ _id: "master" });
+  const uri = process.env.MONGO_URI;
+  if (uri && uri !== "your_mongo_url" && !uri.includes("placeholder") && !uri.includes("your_")) {
+    console.log("Connecting to MongoDB Atlas in background...");
+    
+    // Connect asynchronously to avoid blocking server startup (cold starts)
+    const client = new MongoClient(uri, {
+      connectTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 3000
+    });
 
-      if (doc) {
-        dbCache = doc.data as DatabaseSchema;
-        console.log("Database loaded from MongoDB Atlas.");
-      } else {
-        // Seed database from local db.json
-        const localDb = loadLocalDb();
-        await collection.insertOne({ _id: "master", data: localDb });
-        dbCache = localDb;
-        console.log("Initialized new database document in MongoDB Atlas.");
-      }
-    } catch (err) {
-      console.error("Failed to connect to MongoDB, falling back to local file storage:", err);
-      useMongo = false;
-      dbCache = loadLocalDb();
-    }
+    client.connect()
+      .then(async () => {
+        mongoClient = client;
+        useMongo = true;
+        console.log("Connected to MongoDB successfully in background!");
+
+        const db = client.db("kabayan_shop");
+        const collection = db.collection("datastore");
+        const doc = await collection.findOne({ _id: "master" });
+
+        if (doc) {
+          dbCache = doc.data as DatabaseSchema;
+          console.log("Database cache synced from MongoDB Atlas.");
+        } else {
+          // Seed database from local dbCache
+          await collection.insertOne({ _id: "master", data: dbCache! });
+          console.log("Initialized new database document in MongoDB Atlas.");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to connect to MongoDB in background, using local file storage:", err.message);
+        useMongo = false;
+      });
   } else {
-    console.log("MONGO_URI not specified. Using local file storage.");
+    console.log("MONGO_URI not specified or is placeholder. Using local file storage.");
     useMongo = false;
-    dbCache = loadLocalDb();
   }
 }
 
