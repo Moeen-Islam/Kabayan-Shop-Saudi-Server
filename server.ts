@@ -501,7 +501,8 @@ async function startServer() {
         price: activePrice,
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
-        selectedPackageType: item.selectedPackageType
+        selectedPackageType: item.selectedPackageType,
+        purchasePrice: product.purchasePrice || 0
       });
     }
 
@@ -661,6 +662,23 @@ async function startServer() {
       .filter(o => o.createdAt.startsWith(currentMonthStr))
       .reduce((sum, o) => sum + o.grandTotal, 0);
 
+    // Helper to calculate profit of an order
+    const calculateOrderProfit = (o: any) => {
+      const totalCost = o.items.reduce((costSum: number, item: any) => {
+        const purchasePrice = item.purchasePrice !== undefined 
+          ? item.purchasePrice 
+          : (db.products.find(p => p.id === item.productId)?.purchasePrice || 0);
+        return costSum + (purchasePrice * item.quantity);
+      }, 0);
+      return (o.productTotal - (o.discountAmount || 0)) - totalCost;
+    };
+
+    const totalProfit = activeOrders.reduce((sum, o) => sum + calculateOrderProfit(o), 0);
+
+    const monthlyProfit = activeOrders
+      .filter(o => o.createdAt.startsWith(currentMonthStr))
+      .reduce((sum, o) => sum + calculateOrderProfit(o), 0);
+
     // Group sales and order counts by day (last 7 days)
     const salesByDayMap: { [key: string]: number } = {};
     const ordersByDayMap: { [key: string]: number } = {};
@@ -703,6 +721,8 @@ async function startServer() {
       cancelledOrders,
       totalRevenue,
       monthlyRevenue,
+      totalProfit,
+      monthlyProfit,
       salesByDay,
       ordersByDay
     };

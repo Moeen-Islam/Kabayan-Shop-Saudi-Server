@@ -19,6 +19,7 @@ export interface Product {
   dualSizesTitle2?: string;
   sizes2?: string[];
   colorImageMap?: Record<string, string>;
+  purchasePrice?: number;
 }
 
 export interface Category {
@@ -36,6 +37,7 @@ export interface OrderItem {
   selectedColor: string;
   selectedSize: string;
   selectedPackageType: string;
+  purchasePrice?: number;
 }
 
 export interface Order {
@@ -98,6 +100,8 @@ export interface DashboardStats {
   cancelledOrders: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  totalProfit: number;
+  monthlyProfit: number;
   salesByDay: { date: string; amount: number }[];
   ordersByDay: { date: string; count: number }[];
 }
