@@ -47,8 +47,12 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // Ensure uploads directory exists
-  const uploadsDir = path.join(process.cwd(), "uploads");
+  // Determine uploads directory (use same folder as DB_PATH if persistent volume is mounted)
+  const dbPathEnv = process.env.DB_PATH;
+  const uploadsDir = dbPathEnv 
+    ? path.join(path.dirname(dbPathEnv), "uploads") 
+    : path.join(process.cwd(), "uploads");
+
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
@@ -95,7 +99,7 @@ async function startServer() {
   });
 
   // Admin image upload API (Base64)
-  app.post("/api/admin/upload", adminAuth, (req, res) => {
+  app.post("/api/admin/upload", adminAuth, async (req, res) => {
     const { filename, data } = req.body;
     if (!filename || !data) {
       return res.status(400).json({ error: "Filename and data are required" });
@@ -108,25 +112,54 @@ async function startServer() {
         return res.status(400).json({ error: "Invalid base64 image data format" });
       }
 
+      // 1. Check if ImgBB API Key is configured for permanent cloud image hosting (Recommended)
+      if (process.env.IMGBB_API_KEY) {
+        try {
+          console.log("Uploading image to ImgBB CDN...");
+          const base64Data = matches[2];
+          
+          const formData = new URLSearchParams();
+          formData.append("image", base64Data);
+          
+          const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            }
+          });
+          
+          if (imgbbResponse.ok) {
+            const result = await imgbbResponse.json() as any;
+            if (result && result.data && result.data.url) {
+              const imageUrl = result.data.url;
+              console.log("Image uploaded to ImgBB successfully:", imageUrl);
+              return res.json({ success: true, imageUrl });
+            }
+          }
+          const errText = await imgbbResponse.text();
+          console.error("ImgBB upload failed, falling back to local storage:", errText);
+        } catch (uploadErr) {
+          console.error("Failed to upload to ImgBB, falling back to local storage:", uploadErr);
+        }
+      }
+
+      // 2. Fallback to Local Persistent File Storage
       const imageBuffer = Buffer.from(matches[2], "base64");
-      const ext = path.extname(filename) || ".png";
-      const baseName = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, "");
-      const finalFilename = `${Date.now()}-${baseName}${ext}`;
-      const filePath = path.join(uploadsDir, finalFilename);
-
-      fs.writeFileSync(filePath, imageBuffer);
-
-      const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+      const uniqueFilename = `${Date.now()}-${filename}`;
+      const absolutePath = path.join(uploadsDir, uniqueFilename);
+      
+      fs.writeFileSync(absolutePath, imageBuffer);
+      
+      // Resolve absolute url using host headers
+      const proto = req.headers["x-forwarded-proto"] || req.protocol;
       const host = req.headers["x-forwarded-host"] || req.get("host");
-      const imageUrl = `${protocol}://${host}/uploads/${finalFilename}`;
-
-      res.json({
-        success: true,
-        imageUrl
-      });
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      res.status(500).json({ error: "Failed to save uploaded image: " + err.message });
+      const imageUrl = `${proto}://${host}/uploads/${uniqueFilename}`;
+      
+      res.json({ success: true, imageUrl });
+    } catch (e) {
+      console.error("Image upload failed", e);
+      res.status(500).json({ error: "Failed to upload image" });
     }
   });
 
@@ -587,7 +620,8 @@ async function startServer() {
       deliveryCharge,
       discountAmount: discountAmount > 0 ? discountAmount : undefined,
       grandTotal,
-      status: "Pending"
+      status: "Pending",
+      driverDeliveryCharge: area.driverCharge || 0
     };
 
     db.orders.push(newOrder);
@@ -690,7 +724,7 @@ async function startServer() {
           : (db.products.find(p => p.id === item.productId)?.purchasePrice || 0);
         return costSum + (purchasePrice * item.quantity);
       }, 0);
-      return (o.productTotal - (o.discountAmount || 0)) - totalCost;
+      return o.grandTotal - totalCost - (o.driverDeliveryCharge || 0);
     };
 
     const totalProfit = activeOrders.reduce((sum, o) => sum + calculateOrderProfit(o), 0);

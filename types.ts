@@ -63,6 +63,7 @@ export interface Order {
   discountAmount?: number;
   grandTotal: number;
   status: "Pending" | "Confirmed" | "Packed" | "Shipped" | "Delivered" | "Cancelled";
+  driverDeliveryCharge?: number;
 }
 
 export interface DeliveryArea {
@@ -71,6 +72,7 @@ export interface DeliveryArea {
   charge: number;
   freeDeliveryAbove?: number | null;
   minOrderValue?: number | null;
+  driverCharge?: number;
 }
 
 export interface Coupon {

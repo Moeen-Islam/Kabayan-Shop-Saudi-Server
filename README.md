@@ -17,12 +17,16 @@ This is the REST API backend server that manages products, categories, shipping 
 
 ### Environment Variables (`server/.env`)
 Create a `.env` file in the `/server` directory:
-```env
 PORT=5000
 ADMIN_EMAIL=admin@kabayanshopksa.com
 ADMIN_PASSWORD=admin123
 DB_PATH=/optional/path/to/db.json
+IMGBB_API_KEY=your_free_imgbb_api_key_for_permanent_images
 ```
+
+> [!TIP]
+> **ImgBB Integration**: To ensure your product images are never lost on server restarts or git pushes (since serverless filesystems are ephemeral), register for a free account at [ImgBB](https://imgbb.com/) and create a free API Key, then add it to your environment variables. The server will automatically detect it and host your images permanently on ImgBB's global high-speed CDN. Otherwise, it will fall back to local disk storage.
+
 
 ### Run Locally
 Install dependencies and launch the dev server:
