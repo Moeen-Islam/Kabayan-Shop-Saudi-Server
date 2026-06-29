@@ -621,7 +621,8 @@ async function startServer() {
       discountAmount: discountAmount > 0 ? discountAmount : undefined,
       grandTotal,
       status: "Pending",
-      driverDeliveryCharge: area.driverCharge || 0
+      driverDeliveryCharge: area.driverCharge || 0,
+      deliveryTime: area.deliveryTime || ""
     };
 
     db.orders.push(newOrder);

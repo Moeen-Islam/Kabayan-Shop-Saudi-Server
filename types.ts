@@ -64,6 +64,7 @@ export interface Order {
   grandTotal: number;
   status: "Pending" | "Confirmed" | "Packed" | "Shipped" | "Delivered" | "Cancelled";
   driverDeliveryCharge?: number;
+  deliveryTime?: string;
 }
 
 export interface DeliveryArea {
