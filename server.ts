@@ -487,8 +487,16 @@ async function startServer() {
 
       const basePrice = product.offerPrice !== undefined ? product.offerPrice : product.price;
       const { multiplier, discount } = getPackageMultiplierAndDiscount(item.selectedPackageType);
-      const activePrice = Math.round(basePrice * multiplier * discount);
-      productTotal += activePrice * item.quantity;
+      
+      let activePrice = 0;
+      if (product.packagePrices && product.packagePrices[item.selectedPackageType] !== undefined) {
+        activePrice = product.packagePrices[item.selectedPackageType];
+      } else {
+        activePrice = Math.round(basePrice * multiplier * discount);
+      }
+
+      const unitPrice = multiplier > 0 ? Math.round((activePrice / multiplier) * 100) / 100 : basePrice;
+      productTotal += Math.round(unitPrice * item.quantity);
 
       // Deduct stock
       product.stock -= item.quantity;
@@ -498,7 +506,7 @@ async function startServer() {
         productName: product.name,
         productImage: product.images[0] || "",
         quantity: item.quantity,
-        price: activePrice,
+        price: unitPrice,
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
         selectedPackageType: item.selectedPackageType,
