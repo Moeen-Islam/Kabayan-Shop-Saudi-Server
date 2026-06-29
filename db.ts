@@ -48,13 +48,13 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 const DEFAULT_AREAS: DeliveryArea[] = [
-  { id: "area-1", name: "Riyadh", charge: 15 },
-  { id: "area-2", name: "Jeddah", charge: 25 },
-  { id: "area-3", name: "Dammam", charge: 20 },
-  { id: "area-4", name: "Mecca", charge: 25 },
-  { id: "area-5", name: "Medina", charge: 25 },
-  { id: "area-6", name: "Khobar", charge: 20 },
-  { id: "area-7", name: "Other Areas", charge: 40 }
+  { id: "area-1", name: "Riyadh", charge: 15, driverCharge: 30 },
+  { id: "area-2", name: "Jeddah", charge: 25, driverCharge: 35 },
+  { id: "area-3", name: "Dammam", charge: 20, driverCharge: 45 },
+  { id: "area-4", name: "Mecca", charge: 25, driverCharge: 35 },
+  { id: "area-5", name: "Medina", charge: 25, driverCharge: 35 },
+  { id: "area-6", name: "Khobar", charge: 20, driverCharge: 45 },
+  { id: "area-7", name: "Other Areas", charge: 40, driverCharge: 50 }
 ];
 
 const DEFAULT_COUPONS: Coupon[] = [
@@ -92,6 +92,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 180,
     offerPrice: 145,
+    purchasePrice: 65,
     stock: 25,
     sizes: ["S", "M", "L", "XL", "XXL", "Free Size"],
     colors: ["Jet Black", "Midnight Blue", "Emerald Green"],
@@ -105,13 +106,14 @@ const DEFAULT_PRODUCTS: Product[] = [
     name: "Classic Modest Linen A-Line Maxi Dress",
     slug: "classic-modest-linen-maxi-dress",
     category: "Dresses",
-    description: "A beautifully structured maxi dress made of breathable Turkish linen. It features a high waistband, comfortable round neck, and a full flare skirt. Comes with a matching fabric belt.",
+    description: "A beautifully structured modest dress made of breathable Turkish linen. It features a high waistband, comfortable round neck, and a full flare skirt. Comes with a matching fabric belt.",
     images: [
       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1000",
       "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=1000"
     ],
     price: 210,
     offerPrice: 169,
+    purchasePrice: 85,
     stock: 15,
     sizes: ["S", "M", "L", "XL"],
     colors: ["Beige", "Dusty Pink", "Sage Green", "Black"],
@@ -131,6 +133,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 160,
     offerPrice: 120,
+    purchasePrice: 55,
     stock: 8,
     sizes: ["M", "L", "XL", "XXL"],
     colors: ["Dark Blue Wash", "Black Washed", "Light Bleach Wash"],
@@ -150,6 +153,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 220,
     offerPrice: 185,
+    purchasePrice: 90,
     stock: 3,
     sizes: ["S", "M", "L", "XL", "Free Size"],
     colors: ["Oatmeal Beige", "Terracotta", "Olive Green", "White"],
@@ -170,6 +174,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 130,
     offerPrice: 95,
+    purchasePrice: 40,
     stock: 45,
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: ["Dusty Lilac", "Soft Cream", "Charcoal Gray"],
@@ -189,6 +194,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 250,
     offerPrice: 199,
+    purchasePrice: 100,
     stock: 12,
     sizes: ["37", "38", "39", "40", "41"],
     colors: ["Honey Tan", "Classic Camel", "Rich Onyx"],
@@ -208,6 +214,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     ],
     price: 120,
     offerPrice: 85,
+    purchasePrice: 35,
     stock: 50,
     sizes: ["M", "L", "XL", "XXL"],
     colors: ["Mixed Pack (White/Black/Beige)", "All White Trio", "All Black Trio"],

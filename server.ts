@@ -757,7 +757,11 @@ async function startServer() {
           : (db.products.find(p => p.id === item.productId)?.purchasePrice || 0);
         return costSum + (purchasePrice * item.quantity);
       }, 0);
-      return o.grandTotal - totalCost - (o.driverDeliveryCharge || 0);
+      const area = db.areas.find(a => a.name === o.areaName || a.id === o.areaId);
+      const driverCost = o.driverDeliveryCharge !== undefined && o.driverDeliveryCharge !== 0
+        ? o.driverDeliveryCharge
+        : (area?.driverCharge || 0);
+      return o.grandTotal - totalCost - driverCost;
     };
 
     // Monthly and Total Profit only includes DELIVERED orders
