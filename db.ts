@@ -64,7 +64,7 @@ const DEFAULT_COUPONS: Coupon[] = [
 
 const DEFAULT_SETTINGS: ShopSettings = {
   shopName: "Kabayan Shop Saudi",
-  whatsappContact: "966501234567", // Example Saudi WhatsApp
+  whatsappContact: "8801765865757", // Admin WhatsApp number
   currency: "SAR",
   bannerImages: [
     "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200", // Elegant clothing banner
