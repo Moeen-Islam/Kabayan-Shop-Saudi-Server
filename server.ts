@@ -669,6 +669,21 @@ async function startServer() {
     res.json({ success: true, order: db.orders[orderIndex] });
   });
 
+  app.put("/api/orders/:id/whatsapp", adminAuth, (req, res) => {
+    const db = getDb();
+    const { id } = req.params;
+    const { whatsapp } = req.body;
+
+    const order = db.orders.find(o => o.id === id);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    order.whatsapp = whatsapp;
+    saveDb(db);
+    res.json({ success: true, order });
+  });
+
   app.delete("/api/orders/:id", adminAuth, (req, res) => {
     const db = getDb();
     const { id } = req.params;

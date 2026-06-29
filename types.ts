@@ -73,6 +73,7 @@ export interface DeliveryArea {
   freeDeliveryAbove?: number | null;
   minOrderValue?: number | null;
   driverCharge?: number;
+  deliveryTime?: string;
 }
 
 export interface Coupon {
