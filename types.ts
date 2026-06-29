@@ -12,6 +12,8 @@ export interface Product {
   colors: string[];
   packageTypes: string[];
   packagePrices?: Record<string, number>;
+  sizePrices?: Record<string, number>;
+  clothShopOwner?: string;
   status: "active" | "draft";
   createdAt: string;
   hasDualSizes?: boolean;
@@ -38,6 +40,7 @@ export interface OrderItem {
   selectedSize: string;
   selectedPackageType: string;
   purchasePrice?: number;
+  clothShopOwner?: string;
 }
 
 export interface Order {
@@ -90,6 +93,9 @@ export interface ShopSettings {
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;
+  messengerPageId?: string;
+  adminEmail?: string;
+  adminPassword?: string;
 }
 
 export interface DashboardStats {

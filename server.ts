@@ -79,10 +79,11 @@ async function startServer() {
   // 1. Admin Login
   app.post("/api/admin/login", (req, res) => {
     const { email, password } = req.body;
-    const envEmail = process.env.ADMIN_EMAIL || "admin@kabayanshopksa.com";
-    const envPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const db = getDb();
+    const dbEmail = db.settings?.adminEmail || process.env.ADMIN_EMAIL || "admin@kabayanshopksa.com";
+    const dbPassword = db.settings?.adminPassword || process.env.ADMIN_PASSWORD || "admin123";
 
-    if (email === envEmail && password === envPassword) {
+    if (email === dbEmail && password === dbPassword) {
       res.json({
         success: true,
         token: "kabayan-admin-super-secure-token-2026",
@@ -132,7 +133,10 @@ async function startServer() {
   // 2. Settings (Public GET, Admin POST)
   app.get("/api/settings", (req, res) => {
     const db = getDb();
-    res.json(db.settings);
+    const publicSettings = { ...db.settings };
+    delete publicSettings.adminEmail;
+    delete publicSettings.adminPassword;
+    res.json(publicSettings);
   });
 
   app.post("/api/settings", adminAuth, (req, res) => {
@@ -488,7 +492,11 @@ async function startServer() {
         return res.status(400).json({ error: `Insufficient stock for ${product.name}. Available: ${product.stock}` });
       }
 
-      const basePrice = product.offerPrice !== undefined ? product.offerPrice : product.price;
+      const defaultBasePrice = product.offerPrice !== undefined ? product.offerPrice : product.price;
+      const basePrice = (product.sizePrices && item.selectedSize && product.sizePrices[item.selectedSize] !== undefined)
+        ? product.sizePrices[item.selectedSize]
+        : defaultBasePrice;
+
       const { multiplier, discount } = getPackageMultiplierAndDiscount(item.selectedPackageType);
       
       let activePrice = 0;
@@ -513,7 +521,8 @@ async function startServer() {
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
         selectedPackageType: item.selectedPackageType,
-        purchasePrice: product.purchasePrice || 0
+        purchasePrice: product.purchasePrice || 0,
+        clothShopOwner: product.clothShopOwner || ""
       });
     }
 
