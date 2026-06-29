@@ -97,7 +97,8 @@ const DEFAULT_PRODUCTS: Product[] = [
     colors: ["Jet Black", "Midnight Blue", "Emerald Green"],
     packageTypes: ["Single Piece", "2pcs Combo (Abaya + Sheila)"],
     status: "active",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    isTrending: true
   },
   {
     id: "prod-2",
@@ -154,7 +155,8 @@ const DEFAULT_PRODUCTS: Product[] = [
     colors: ["Oatmeal Beige", "Terracotta", "Olive Green", "White"],
     packageTypes: ["2pcs Set (Top + Pants)", "Buy 2 Sets Promo (4pcs)"],
     status: "active",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    isTrending: true
   },
   {
     id: "prod-5",

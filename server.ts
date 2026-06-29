@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import cors from "cors";
 import dotenv from "dotenv";
+import compression from "compression";
 import { getDb, saveDb, initDatabase } from "./db";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, DashboardStats } from "./types";
 
@@ -14,6 +15,7 @@ async function startServer() {
   await initDatabase();
 
   const app = express();
+  app.use(compression());
   const PORT = process.env.PORT || 5000;
 
   // Enable CORS for frontend clients dynamically
@@ -375,7 +377,8 @@ async function startServer() {
       dualSizesTitle1,
       dualSizesTitle2,
       sizes2,
-      colorImageMap
+      colorImageMap,
+      isTrending
     } = req.body;
 
     if (!name || !category || !price || stock === undefined) {
@@ -404,7 +407,8 @@ async function startServer() {
       dualSizesTitle1: dualSizesTitle1 || "Size 1",
       dualSizesTitle2: dualSizesTitle2 || "Size 2",
       sizes2: sizes2 || [],
-      colorImageMap: colorImageMap || {}
+      colorImageMap: colorImageMap || {},
+      isTrending: !!isTrending
     };
 
     db.products.push(newProduct);

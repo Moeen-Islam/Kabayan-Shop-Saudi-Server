@@ -22,6 +22,7 @@ export interface Product {
   sizes2?: string[];
   colorImageMap?: Record<string, string>;
   purchasePrice?: number;
+  isTrending?: boolean;
 }
 
 export interface Category {
