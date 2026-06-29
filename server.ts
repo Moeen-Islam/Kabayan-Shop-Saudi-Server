@@ -752,7 +752,7 @@ async function startServer() {
     // Helper to calculate profit of an order
     const calculateOrderProfit = (o: any) => {
       const totalCost = o.items.reduce((costSum: number, item: any) => {
-        const purchasePrice = item.purchasePrice !== undefined 
+        const purchasePrice = (item.purchasePrice !== undefined && item.purchasePrice !== 0)
           ? item.purchasePrice 
           : (db.products.find(p => p.id === item.productId)?.purchasePrice || 0);
         return costSum + (purchasePrice * item.quantity);
