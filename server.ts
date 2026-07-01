@@ -11,8 +11,10 @@ import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, Dashboard
 dotenv.config();
 
 async function startServer() {
-  // Initialize database (connects and loads MongoDB document cache if MONGO_URI is configured)
-  await initDatabase();
+  // Initialize database asynchronously in the background so port binding happens instantly
+  initDatabase().catch(err => {
+    console.error("Background database initialization failed:", err);
+  });
 
   const app = express();
   app.use(compression());
