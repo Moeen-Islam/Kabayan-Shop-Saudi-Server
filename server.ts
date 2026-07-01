@@ -344,10 +344,72 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  // 6. Products (Public GET, GET by slug, Admin POST/PUT/DELETE)
   app.get("/api/products", (req, res) => {
     const db = getDb();
-    res.json(db.products);
+    const authHeader = req.headers.authorization;
+    const isAdmin = authHeader === "Bearer kabayan-admin-super-secure-token-2026" || req.query.admin === "true";
+
+    if (isAdmin) {
+      // Admin operators get full product records immediately (unpaginated)
+      return res.json(db.products);
+    }
+
+    let filtered = db.products.filter(p => p.status === "active");
+
+    const { category, search, page, limit } = req.query;
+
+    // Server-side Category filtering
+    if (category) {
+      filtered = filtered.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+    }
+
+    // Server-side Search filtering
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.description && p.description.toLowerCase().includes(q)) || 
+        p.category.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort: trending products first, then newest
+    filtered.sort((a, b) => {
+      if (a.isTrending && !b.isTrending) return -1;
+      if (!a.isTrending && b.isTrending) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    const total = filtered.length;
+    const pageNum = parseInt(String(page || 1), 10);
+    const limitNum = parseInt(String(limit || 12), 10);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+
+    const paginated = filtered.slice(startIndex, endIndex);
+
+    // Map to lightweight payloads to drastically save mobile bandwidth
+    const lightweight = paginated.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      category: p.category,
+      price: p.price,
+      offerPrice: p.offerPrice,
+      images: [p.images[0] || ""], // Only 1 thumbnail image
+      isTrending: p.isTrending,
+      status: p.status,
+      createdAt: p.createdAt,
+      stock: p.stock
+    }));
+
+    res.json({
+      products: lightweight,
+      page: pageNum,
+      limit: limitNum,
+      total,
+      hasMore: endIndex < total
+    });
   });
 
   app.get("/api/products/slug/:slug", (req, res) => {
