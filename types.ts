@@ -67,6 +67,7 @@ export interface Order {
   status: "Pending" | "Confirmed" | "Packed" | "Shipped" | "Delivered" | "Cancelled";
   driverDeliveryCharge?: number;
   deliveryTime?: string;
+  paymentMethod?: string;
 }
 
 export interface DeliveryArea {

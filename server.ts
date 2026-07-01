@@ -518,7 +518,8 @@ async function startServer() {
       lat,
       lng,
       items,
-      couponCode
+      couponCode,
+      paymentMethod
     } = req.body;
 
     if (!customerName || !whatsapp || !areaId || !fullAddress || !items || items.length === 0) {
@@ -645,7 +646,8 @@ async function startServer() {
       grandTotal,
       status: "Pending",
       driverDeliveryCharge: area.driverCharge || 0,
-      deliveryTime: area.deliveryTime || ""
+      deliveryTime: area.deliveryTime || "",
+      paymentMethod: paymentMethod || "Cash On Delivery"
     };
 
     db.orders.push(newOrder);
