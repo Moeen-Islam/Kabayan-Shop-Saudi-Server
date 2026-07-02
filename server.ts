@@ -11,10 +11,13 @@ import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, Dashboard
 dotenv.config();
 
 async function startServer() {
-  // Initialize database asynchronously in the background so port binding happens instantly
-  initDatabase().catch(err => {
-    console.error("Background database initialization failed:", err);
-  });
+  // Initialize database and wait for it to complete/fail before starting Express server
+  try {
+    await initDatabase();
+    console.log("Database initialized successfully.");
+  } catch (err) {
+    console.error("Critical database initialization error:", err);
+  }
 
   const app = express();
   app.use(compression());

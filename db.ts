@@ -293,11 +293,11 @@ function loadLocalDb(): DatabaseSchema {
     const data = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(data);
     return {
-      products: parsed.products || DEFAULT_PRODUCTS,
-      categories: parsed.categories || DEFAULT_CATEGORIES,
+      products: (parsed.products && parsed.products.length > 0) ? parsed.products : DEFAULT_PRODUCTS,
+      categories: (parsed.categories && parsed.categories.length > 0) ? parsed.categories : DEFAULT_CATEGORIES,
       orders: parsed.orders || [],
-      areas: parsed.areas || DEFAULT_AREAS,
-      coupons: parsed.coupons || DEFAULT_COUPONS,
+      areas: (parsed.areas && parsed.areas.length > 0) ? parsed.areas : DEFAULT_AREAS,
+      coupons: (parsed.coupons && parsed.coupons.length > 0) ? parsed.coupons : DEFAULT_COUPONS,
       settings: parsed.settings || DEFAULT_SETTINGS
     };
   } catch (error) {
