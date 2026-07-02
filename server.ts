@@ -347,6 +347,68 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Unified storefront initialization endpoint to minimize HTTP round-trips for new users
+  app.get("/api/storefront/init", (req, res) => {
+    const db = getDb();
+    
+    // 1. Get first page of active products (first 12 products, trending first, then newest)
+    let filtered = db.products.filter(p => p.status === "active");
+
+    const { category, search } = req.query;
+
+    if (category) {
+      filtered = filtered.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+    }
+
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.description && p.description.toLowerCase().includes(q)) || 
+        p.category.toLowerCase().includes(q)
+      );
+    }
+
+    filtered.sort((a, b) => {
+      if (a.isTrending && !b.isTrending) return -1;
+      if (!a.isTrending && b.isTrending) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    const total = filtered.length;
+    const paginated = filtered.slice(0, 12);
+
+    const lightweight = paginated.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      category: p.category,
+      price: p.price,
+      offerPrice: p.offerPrice,
+      images: [p.images[0] || ""], // Only 1 thumbnail image
+      isTrending: p.isTrending,
+      status: p.status,
+      createdAt: p.createdAt,
+      stock: p.stock
+    }));
+
+    // 2. Public settings
+    const publicSettings = { ...db.settings };
+    delete publicSettings.adminEmail;
+    delete publicSettings.adminPassword;
+
+    res.json({
+      products: lightweight,
+      page: 1,
+      limit: 12,
+      total,
+      hasMore: total > 12,
+      categories: db.categories,
+      areas: db.areas,
+      settings: publicSettings
+    });
+  });
+
   app.get("/api/products", (req, res) => {
     const db = getDb();
     const authHeader = req.headers.authorization;
@@ -447,7 +509,8 @@ async function startServer() {
       dualSizesTitle2,
       sizes2,
       colorImageMap,
-      isTrending
+      isTrending,
+      isGroupOrder
     } = req.body;
 
     if (!name || !category || !price || stock === undefined) {
@@ -479,7 +542,8 @@ async function startServer() {
       dualSizesTitle2: dualSizesTitle2 || "Size 2",
       sizes2: sizes2 || [],
       colorImageMap: colorImageMap || {},
-      isTrending: !!isTrending
+      isTrending: !!isTrending,
+      isGroupOrder: !!isGroupOrder
     };
 
     db.products.push(newProduct);

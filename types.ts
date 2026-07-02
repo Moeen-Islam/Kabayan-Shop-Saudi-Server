@@ -24,6 +24,7 @@ export interface Product {
   purchasePrice?: number;
   isTrending?: boolean;
   rating?: number;
+  isGroupOrder?: boolean;
 }
 
 export interface Category {
