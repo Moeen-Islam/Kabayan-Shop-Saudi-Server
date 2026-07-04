@@ -940,12 +940,12 @@ async function startServer() {
       return o.grandTotal - totalCost - driverCost;
     };
 
-    // Monthly and Total Profit only includes DELIVERED orders
-    const deliveredOrdersList = orders.filter(o => o.status === "Delivered");
+    // Monthly and Total Profit includes all active (non-cancelled) orders
+    const activeProfitOrders = orders.filter(o => o.status !== "Cancelled");
 
-    const totalProfit = deliveredOrdersList.reduce((sum, o) => sum + calculateOrderProfit(o), 0);
+    const totalProfit = activeProfitOrders.reduce((sum, o) => sum + calculateOrderProfit(o), 0);
 
-    const monthlyProfit = deliveredOrdersList
+    const monthlyProfit = activeProfitOrders
       .filter(o => o.createdAt.startsWith(currentMonthStr))
       .reduce((sum, o) => sum + calculateOrderProfit(o), 0);
 
