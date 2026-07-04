@@ -349,6 +349,32 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  app.put("/api/coupons/:id", adminAuth, (req, res) => {
+    const db = getDb();
+    const { id } = req.params;
+    const { code, discountType, discountValue, expiryDate } = req.body;
+
+    const couponIndex = db.coupons.findIndex(c => c.id === id);
+    if (couponIndex === -1) {
+      return res.status(404).json({ error: "Coupon not found" });
+    }
+
+    if (!code || !discountType || discountValue === undefined || !expiryDate) {
+      return res.status(400).json({ error: "All coupon fields are required" });
+    }
+
+    db.coupons[couponIndex] = {
+      id,
+      code: code.toUpperCase(),
+      discountType,
+      discountValue: Number(discountValue),
+      expiryDate
+    };
+
+    saveDb(db);
+    res.json({ success: true, coupon: db.coupons[couponIndex] });
+  });
+
   // Unified storefront initialization endpoint to minimize HTTP round-trips for new users
   app.get("/api/storefront/init", (req, res) => {
     const db = getDb();
