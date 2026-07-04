@@ -203,7 +203,7 @@ async function startServer() {
 
   app.post("/api/categories", adminAuth, (req, res) => {
     const db = getDb();
-    const { name } = req.body;
+    const { name, nameAr, nameFil } = req.body;
     if (!name) {
       return res.status(400).json({ error: "Category name is required" });
     }
@@ -217,7 +217,9 @@ async function startServer() {
     const newCategory: Category = {
       id: "cat-" + Date.now(),
       name,
-      slug
+      slug,
+      nameAr,
+      nameFil
     };
 
     db.categories.push(newCategory);
@@ -357,7 +359,11 @@ async function startServer() {
     const { category, search } = req.query;
 
     if (category) {
-      filtered = filtered.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+      const targetSlug = String(category).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      filtered = filtered.filter(p => {
+        const prodSlug = p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        return prodSlug === targetSlug;
+      });
     }
 
     if (search) {
@@ -425,7 +431,11 @@ async function startServer() {
 
     // Server-side Category filtering
     if (category) {
-      filtered = filtered.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+      const targetSlug = String(category).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      filtered = filtered.filter(p => {
+        const prodSlug = p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        return prodSlug === targetSlug;
+      });
     }
 
     // Server-side Search filtering

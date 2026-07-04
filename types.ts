@@ -31,6 +31,8 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  nameAr?: string;
+  nameFil?: string;
 }
 
 export interface OrderItem {
