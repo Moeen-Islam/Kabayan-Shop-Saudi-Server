@@ -724,6 +724,13 @@ async function startServer() {
       });
     }
 
+    // Finalize free delivery discount check
+    if (area.freeDeliveryAbove !== undefined && area.freeDeliveryAbove !== null) {
+      if (productTotal >= area.freeDeliveryAbove) {
+        deliveryCharge = 0;
+      }
+    }
+
     // Apply Coupon if present
     let discountAmount = 0;
     if (couponCode) {
@@ -734,19 +741,13 @@ async function startServer() {
           if (coupon.discountType === "percentage") {
             discountAmount = Math.round((productTotal * coupon.discountValue) / 100);
           } else {
-            discountAmount = Math.min(coupon.discountValue, productTotal);
+            discountAmount = Math.min(coupon.discountValue, productTotal + deliveryCharge);
           }
         }
       }
     }
 
-    if (area.freeDeliveryAbove !== undefined && area.freeDeliveryAbove !== null) {
-      if (productTotal >= area.freeDeliveryAbove) {
-        deliveryCharge = 0;
-      }
-    }
-
-    const grandTotal = Math.max(0, productTotal - discountAmount) + deliveryCharge;
+    const grandTotal = Math.max(0, productTotal + deliveryCharge - discountAmount);
     
     // Custom regional order number generator: MT-{paddedNumber}({areaName})
     let maxSerial = 0;
