@@ -65,7 +65,7 @@ export async function trackServerPurchase(order: Order, req: any) {
     }));
 
     // Build the request body structure
-    const payload = {
+    const payload: any = {
       data: [
         {
           event_name: "Purchase",
@@ -83,6 +83,11 @@ export async function trackServerPurchase(order: Order, req: any) {
         }
       ]
     };
+
+    // Add Meta Test Event Code if defined in environment variables
+    if (process.env.FB_TEST_EVENT_CODE) {
+      payload.test_event_code = process.env.FB_TEST_EVENT_CODE.trim();
+    }
 
     console.log(`[Meta CAPI] Sending server Purchase event for order ${order.orderNumber} (Event ID: ${order.id})...`);
 
