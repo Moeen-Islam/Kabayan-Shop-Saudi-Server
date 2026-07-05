@@ -554,7 +554,8 @@ async function startServer() {
       sizes2,
       colorImageMap,
       isTrending,
-      isGroupOrder
+      isGroupOrder,
+      isDefaultMixedColor
     } = req.body;
 
     if (!name || !category || !price || stock === undefined) {
@@ -587,7 +588,8 @@ async function startServer() {
       sizes2: sizes2 || [],
       colorImageMap: colorImageMap || {},
       isTrending: !!isTrending,
-      isGroupOrder: !!isGroupOrder
+      isGroupOrder: !!isGroupOrder,
+      isDefaultMixedColor: !!isDefaultMixedColor
     };
 
     db.products.push(newProduct);

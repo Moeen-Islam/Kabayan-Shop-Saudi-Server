@@ -25,6 +25,7 @@ export interface Product {
   isTrending?: boolean;
   rating?: number;
   isGroupOrder?: boolean;
+  isDefaultMixedColor?: boolean;
 }
 
 export interface Category {
