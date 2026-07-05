@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import compression from "compression";
 import { getDb, saveDb, initDatabase } from "./db";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, DashboardStats } from "./types";
+import { trackServerPurchase } from "./tracking";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -176,7 +177,13 @@ async function startServer() {
     const publicSettings = { ...db.settings };
     delete publicSettings.adminEmail;
     delete publicSettings.adminPassword;
+    delete publicSettings.fbAccessToken;
     res.json(publicSettings);
+  });
+
+  app.get("/api/admin/settings", adminAuth, (req, res) => {
+    const db = getDb();
+    res.json(db.settings);
   });
 
   app.post("/api/settings", adminAuth, (req, res) => {
@@ -428,6 +435,7 @@ async function startServer() {
     const publicSettings = { ...db.settings };
     delete publicSettings.adminEmail;
     delete publicSettings.adminPassword;
+    delete publicSettings.fbAccessToken;
 
     res.json({
       products: lightweight,
@@ -820,6 +828,12 @@ async function startServer() {
 
     db.orders.push(newOrder);
     saveDb(db);
+
+    // Trigger Meta Conversions API purchase event in the background
+    trackServerPurchase(newOrder, req).catch(err => {
+      console.error("[Meta CAPI] Purchase track execution error:", err);
+    });
+
     res.json({ success: true, order: newOrder });
   });
 

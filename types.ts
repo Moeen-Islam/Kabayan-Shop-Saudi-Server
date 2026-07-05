@@ -106,6 +106,7 @@ export interface ShopSettings {
   messengerPageId?: string;
   adminEmail?: string;
   adminPassword?: string;
+  fbAccessToken?: string;
 }
 
 export interface DashboardStats {
