@@ -740,7 +740,7 @@ async function startServer() {
         activePrice = Math.round(basePrice * multiplier * discount);
       }
 
-      const unitPrice = multiplier > 0 ? Math.round((activePrice / multiplier) * 100) / 100 : basePrice;
+      const unitPrice = multiplier > 0 ? activePrice / multiplier : basePrice;
       productTotal += Math.round(unitPrice * item.quantity);
 
       // Deduct stock
@@ -751,7 +751,7 @@ async function startServer() {
         productName: product.name,
         productImage: product.images[0] || "",
         quantity: item.quantity,
-        price: unitPrice,
+        price: Math.round(unitPrice * 100) / 100,
         selectedColor: item.selectedColor,
         selectedSize: item.selectedSize,
         selectedPackageType: item.selectedPackageType,
