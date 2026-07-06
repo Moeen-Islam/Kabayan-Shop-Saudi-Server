@@ -646,13 +646,13 @@ async function startServer() {
                         
     if (packOfMatch && packOfMatch[1]) {
       count = parseInt(packOfMatch[1], 10);
-    } else if (name.includes("pair") || name.includes("terno")) {
+    } else if (name.includes("couple") || name.includes("pair") || name.includes("terno") || name.includes("double") || name.includes("two") || name.includes("2")) {
       count = 2;
-    } else if (name.includes("double")) {
-      count = 2;
-    } else if (name.includes("triple")) {
+    } else if (name.includes("triple") || name.includes("three") || name.includes("3")) {
       count = 3;
-    } else if (name.includes("dozen")) {
+    } else if (name.includes("quadruple") || name.includes("four") || name.includes("4")) {
+      count = 4;
+    } else if (name.includes("dozen") || name.includes("12")) {
       count = 12;
     } else {
       const digitMatch = name.match(/(\d+)/);
