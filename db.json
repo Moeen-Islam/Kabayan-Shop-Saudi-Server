@@ -111,7 +111,7 @@
       "price": 220,
       "offerPrice": 185,
       "purchasePrice": 90,
-      "stock": 3,
+      "stock": 1,
       "sizes": [
         "S",
         "M",
@@ -332,7 +332,44 @@
       "slug": "watch"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ord-1783571943436",
+      "orderNumber": "MT-01(Riyadh)",
+      "createdAt": "2026-07-09T04:39:03.436Z",
+      "customerName": "John Doe",
+      "whatsapp": "+966501234567",
+      "areaId": "area-1",
+      "areaName": "Riyadh",
+      "houseNo": "",
+      "fullAddress": "Pinned Location",
+      "notes": "",
+      "lat": 24.713343019935337,
+      "lng": 46.675484842753335,
+      "mapLink": "https://www.google.com/maps?q=24.713343019935337,46.675484842753335",
+      "items": [
+        {
+          "productId": "prod-4",
+          "productName": "Summer Linen 2-Piece Terno Set (Top & Wide Pants)",
+          "productImage": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000",
+          "quantity": 2,
+          "price": 166.5,
+          "selectedColor": "Oatmeal Beige, Oatmeal Beige",
+          "selectedSize": "S",
+          "selectedPackageType": "2pcs Set (Top + Pants)",
+          "purchasePrice": 90,
+          "clothShopOwner": ""
+        }
+      ],
+      "productTotal": 333,
+      "deliveryCharge": 0,
+      "grandTotal": 333,
+      "status": "Pending",
+      "driverDeliveryCharge": 0,
+      "deliveryTime": "",
+      "paymentMethod": "Cash On Delivery"
+    }
+  ],
   "areas": [
     {
       "id": "area-1",

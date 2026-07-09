@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { Order } from "./types";
-import { getDb } from "./db";
+import { getDb, saveDb } from "./db";
 
 // Helper to hash user data as required by Meta's privacy compliance (SHA-256)
 function sha256(text: string): string {
@@ -23,6 +23,13 @@ function hashFirstName(fullName: string): string {
 export async function trackServerPurchase(order: Order, req: any) {
   try {
     const db = getDb();
+    const dbOrder = db.orders.find(o => o.id === order.id);
+
+    if (dbOrder && dbOrder.capiTracked) {
+      console.log(`[Meta CAPI] Skipping CAPI purchase event for order ${order.orderNumber} (Event ID: ${order.id}) as it was already tracked.`);
+      return;
+    }
+
     const pixelId = db.settings?.metaPixelId;
     const fbAccessToken = process.env.FB_ACCESS_TOKEN || db.settings?.fbAccessToken;
 
@@ -101,6 +108,11 @@ export async function trackServerPurchase(order: Order, req: any) {
 
     const resData = await res.json() as any;
     if (res.ok) {
+      if (dbOrder) {
+        dbOrder.capiTracked = true;
+        saveDb(db);
+        console.log(`[Meta CAPI] Order ${order.id} marked as capiTracked in database.`);
+      }
       console.log(`[Meta CAPI] Successfully sent Purchase event for order ${order.orderNumber}. Meta response:`, resData);
     } else {
       console.error(`[Meta CAPI] Meta API returned error for order ${order.orderNumber}:`, resData);

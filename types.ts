@@ -72,6 +72,7 @@ export interface Order {
   driverDeliveryCharge?: number;
   deliveryTime?: string;
   paymentMethod?: string;
+  capiTracked?: boolean;
 }
 
 export interface DeliveryArea {
