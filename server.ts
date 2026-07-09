@@ -408,14 +408,16 @@ async function startServer() {
       );
     }
 
-    filtered.sort((a, b) => {
-      if (a.isTrending && !b.isTrending) return -1;
-      if (!a.isTrending && b.isTrending) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    const trending = filtered.filter(p => p.isTrending);
+    const nonTrending = filtered.filter(p => !p.isTrending);
 
+    // Sort both trending and non-trending lists individually by newest
+    trending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    nonTrending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Page 1 should contain all active trending products plus the first page of non-trending products (limit 12)
+    const paginated = [...trending, ...nonTrending.slice(0, 12)];
     const total = filtered.length;
-    const paginated = filtered.slice(0, 12);
 
     const lightweight = paginated.map(p => ({
       id: p.id,
@@ -442,7 +444,7 @@ async function startServer() {
       page: 1,
       limit: 12,
       total,
-      hasMore: total > 12,
+      hasMore: nonTrending.length > 12,
       categories: db.categories,
       areas: db.areas,
       settings: publicSettings
@@ -482,20 +484,31 @@ async function startServer() {
       );
     }
 
-    // Sort: trending products first, then newest
-    filtered.sort((a, b) => {
-      if (a.isTrending && !b.isTrending) return -1;
-      if (!a.isTrending && b.isTrending) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    const trending = filtered.filter(p => p.isTrending);
+    const nonTrending = filtered.filter(p => !p.isTrending);
+
+    // Sort trending and non-trending lists individually by newest
+    trending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    nonTrending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const total = filtered.length;
     const pageNum = parseInt(String(page || 1), 10);
     const limitNum = parseInt(String(limit || 12), 10);
-    const startIndex = (pageNum - 1) * limitNum;
-    const endIndex = startIndex + limitNum;
 
-    const paginated = filtered.slice(startIndex, endIndex);
+    let paginated;
+    let hasMore;
+
+    if (pageNum === 1) {
+      // Page 1 contains all trending products plus the first page of non-trending products
+      paginated = [...trending, ...nonTrending.slice(0, limitNum)];
+      hasMore = nonTrending.length > limitNum;
+    } else {
+      // Subsequent pages offset only the non-trending products
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      paginated = nonTrending.slice(startIndex, endIndex);
+      hasMore = endIndex < nonTrending.length;
+    }
 
     // Map to lightweight payloads to drastically save mobile bandwidth
     const lightweight = paginated.map(p => ({
@@ -517,7 +530,7 @@ async function startServer() {
       page: pageNum,
       limit: limitNum,
       total,
-      hasMore: endIndex < total
+      hasMore
     });
   });
 
