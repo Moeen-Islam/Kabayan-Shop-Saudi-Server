@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import compression from "compression";
 import { getDb, saveDb, initDatabase } from "./db";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, DashboardStats } from "./types";
-import { trackServerPurchase } from "./tracking";
+import { trackServerPurchase, trackServerEvent } from "./tracking";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -850,6 +850,20 @@ async function startServer() {
     });
 
     res.json({ success: true, order: newOrder });
+  });
+
+  app.post("/api/track/event", (req, res) => {
+    const { eventName, eventId, userData, customData } = req.body;
+    
+    if (!eventName || !eventId) {
+      return res.status(400).json({ error: "eventName and eventId are required" });
+    }
+
+    trackServerEvent(eventName, eventId, userData || {}, customData || {}, req).catch(err => {
+      console.error(`[Meta CAPI] Server event tracking execution error for '${eventName}':`, err);
+    });
+
+    res.json({ success: true });
   });
 
   app.put("/api/orders/:id/status", adminAuth, (req, res) => {
