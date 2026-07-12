@@ -168,6 +168,7 @@ export async function trackServerPurchase(order: Order, req: any) {
     const contents = order.items.map(item => ({
       id: item.productId,
       quantity: item.quantity,
+      price: item.price,
       item_price: item.price
     }));
 
