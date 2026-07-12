@@ -49,7 +49,7 @@ export async function trackServerEvent(
   try {
     const db = getDb();
     const pixelId = db.settings?.metaPixelId;
-    const fbAccessToken = process.env.FB_ACCESS_TOKEN || db.settings?.fbAccessToken;
+    const fbAccessToken = db.settings?.fbAccessToken || process.env.FB_ACCESS_TOKEN;
 
     if (!pixelId) {
       console.log(`[Meta CAPI] Skipping server event '${eventName}': Meta Pixel ID is not configured.`);
@@ -79,9 +79,9 @@ export async function trackServerEvent(
       userData.fn = [hashFirstName(userDataInput.customerName)];
     }
 
-    // External ID matching
+    // External ID matching (Must match client-side raw format for deduplication and matching)
     if (userDataInput.externalId) {
-      userData.external_id = [sha256(userDataInput.externalId)];
+      userData.external_id = userDataInput.externalId;
     }
 
     // Client IP and User Agent are highly valuable for matching
@@ -108,6 +108,12 @@ export async function trackServerEvent(
       userData.fbc = fbcMatch[1].trim();
     }
 
+    // Dynamic resolve of referer source URL with fallback
+    let sourceUrl = req.headers["referer"] || req.headers["origin"] || "https://kabayan-shop-saudi.vercel.app/";
+    if (typeof sourceUrl === "string" && !sourceUrl.startsWith("http")) {
+      sourceUrl = "https://kabayan-shop-saudi.vercel.app/";
+    }
+
     // Build payload
     const payload: any = {
       data: [
@@ -115,7 +121,7 @@ export async function trackServerEvent(
           event_name: eventName,
           event_time: Math.floor(Date.now() / 1000),
           event_id: eventId, // Must match client-side eventID for deduplication
-          event_source_url: `${req.headers["referer"] || req.headers["origin"] || ""}/`,
+          event_source_url: sourceUrl,
           action_source: "website",
           user_data: userData,
           custom_data: customDataInput
