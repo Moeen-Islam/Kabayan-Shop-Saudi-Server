@@ -109,6 +109,7 @@ export interface ShopSettings {
   adminEmail?: string;
   adminPassword?: string;
   fbAccessToken?: string;
+  fbTestEventCode?: string;
 }
 
 export interface DashboardStats {

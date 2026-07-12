@@ -129,8 +129,9 @@ export async function trackServerEvent(
       ]
     };
 
-    if (process.env.FB_TEST_EVENT_CODE) {
-      payload.test_event_code = process.env.FB_TEST_EVENT_CODE.trim();
+    const testEventCode = db.settings?.fbTestEventCode || process.env.FB_TEST_EVENT_CODE;
+    if (testEventCode) {
+      payload.test_event_code = testEventCode.trim();
     }
 
     console.log(`[Meta CAPI] Sending server event '${eventName}' (Event ID: ${eventId})...`);

@@ -178,6 +178,7 @@ async function startServer() {
     delete publicSettings.adminEmail;
     delete publicSettings.adminPassword;
     delete publicSettings.fbAccessToken;
+    delete publicSettings.fbTestEventCode;
     res.json(publicSettings);
   });
 
@@ -438,6 +439,7 @@ async function startServer() {
     delete publicSettings.adminEmail;
     delete publicSettings.adminPassword;
     delete publicSettings.fbAccessToken;
+    delete publicSettings.fbTestEventCode;
 
     res.json({
       products: lightweight,
