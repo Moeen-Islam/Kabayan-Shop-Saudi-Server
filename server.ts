@@ -4,9 +4,17 @@ import fs from "fs";
 import cors from "cors";
 import dotenv from "dotenv";
 import compression from "compression";
+import nodemailer from "nodemailer";
 import { getDb, saveDb, initDatabase } from "./db";
 import { Product, Category, Order, DeliveryArea, Coupon, ShopSettings, DashboardStats } from "./types";
 import { trackServerPurchase, trackServerEvent } from "./tracking";
+
+interface PasswordReset {
+  email: string;
+  code: string;
+  expiresAt: number;
+}
+let passwordResets: PasswordReset[] = [];
 
 // Load environment variables from .env file
 dotenv.config();
@@ -104,6 +112,111 @@ async function startServer() {
     } else {
       res.status(401).json({ error: "Invalid admin email or password" });
     }
+  });
+
+  // 1.5. Admin Forgot Password
+  app.post("/api/admin/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email address is required" });
+    }
+
+    const db = getDb();
+    const adminEmail = db.settings?.adminEmail || process.env.ADMIN_EMAIL || "admin@kabayanshopksa.com";
+
+    if (email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()) {
+      return res.status(400).json({ error: "Email address not recognized" });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store in-memory
+    passwordResets = passwordResets.filter((r) => r.email.toLowerCase() !== email.toLowerCase());
+    passwordResets.push({ email, code, expiresAt });
+
+    // Print to console as fallback
+    console.log("==================================================");
+    console.log(`[SECURITY] PASSWORD RESET CODE FOR ${email}: ${code}`);
+    console.log("==================================================");
+
+    // Attempt to send email
+    try {
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = parseInt(process.env.SMTP_PORT || "587");
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      const mailFrom = process.env.MAIL_FROM || smtpUser || "no-reply@kabayanshopksa.com";
+
+      if (smtpHost && smtpUser && smtpPass) {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: smtpPort === 465,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"Kabayan Shop Saudi" <${mailFrom}>`,
+          to: email,
+          subject: "Admin Password Reset Code - Kabayan Shop Saudi",
+          text: `Hello,\n\nYour 6-digit verification code to reset the Admin Panel password is: ${code}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this, please secure your account credentials immediately.\n\nBest regards,\nKabayan Shop Saudi Operations`,
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <h2 style="color: #d97706; font-size: 20px; font-weight: bold;">Kabayan Shop Saudi Admin Security</h2>
+              <p>Hello,</p>
+              <p>We received a request to reset the password for your Admin Panel account. Use the 6-digit verification code below to proceed:</p>
+              <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; border-radius: 8px; margin: 20px 0; color: #111827;">
+                ${code}
+              </div>
+              <p style="color: #6b7280; font-size: 12px;">This code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="font-size: 11px; color: #9ca3af;">Authorized access only. Operations are securely logged.</p>
+            </div>
+          `,
+        });
+        console.log(`Password reset email sent successfully to ${email}`);
+      } else {
+        console.log("SMTP environment variables not fully configured. Email sending skipped (code printed to console).");
+      }
+    } catch (mailErr) {
+      console.error("Failed to send reset email via SMTP:", mailErr);
+    }
+
+    res.json({ success: true, message: "Verification code sent to your admin email address." });
+  });
+
+  // 1.6. Admin Reset Password
+  app.post("/api/admin/reset-password", (req, res) => {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: "Email, code, and new password are required" });
+    }
+
+    const resetEntry = passwordResets.find(
+      (r) => r.email.toLowerCase() === email.toLowerCase() && r.code === code.trim()
+    );
+
+    if (!resetEntry) {
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    if (Date.now() > resetEntry.expiresAt) {
+      return res.status(400).json({ error: "Verification code has expired" });
+    }
+
+    const db = getDb();
+    db.settings = db.settings || {};
+    db.settings.adminPassword = newPassword;
+    saveDb(db);
+
+    // Clean up reset entry
+    passwordResets = passwordResets.filter((r) => r.email.toLowerCase() !== email.toLowerCase());
+
+    res.json({ success: true, message: "Password updated successfully. Please log in with your new password." });
   });
 
   // Admin image upload API (Base64)
