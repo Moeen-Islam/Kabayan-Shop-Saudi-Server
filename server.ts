@@ -142,6 +142,46 @@ async function startServer() {
 
     // Attempt to send email
     try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (resendApiKey) {
+        const resendFrom = process.env.RESEND_FROM || "onboarding@resend.dev";
+        console.log(`Attempting to send email via Resend API to ${email} (From: ${resendFrom})...`);
+        const resendRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${resendApiKey}`
+          },
+          body: JSON.stringify({
+            from: `Kabayan Shop Saudi <${resendFrom}>`,
+            to: [email],
+            subject: "Admin Password Reset Code - Kabayan Shop Saudi",
+            html: `
+              <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <h2 style="color: #d97706; font-size: 20px; font-weight: bold;">Kabayan Shop Saudi Admin Security</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset the password for your Admin Panel account. Use the 6-digit verification code below to proceed:</p>
+                <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; border-radius: 8px; margin: 20px 0; color: #111827;">
+                  ${code}
+                </div>
+                <p style="color: #6b7280; font-size: 12px;">This code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #9ca3af;">Authorized access only. Operations are securely logged.</p>
+              </div>
+            `
+          })
+        });
+
+        if (resendRes.ok) {
+          console.log(`Password reset email sent successfully via Resend API to ${email}`);
+          return res.json({ success: true, message: "Verification code sent to your admin email address." });
+        } else {
+          const errText = await resendRes.text();
+          console.error("Resend API failed:", errText);
+        }
+      }
+
+      // Fallback: SMTP configuration
       const smtpHost = process.env.SMTP_HOST;
       const smtpPort = parseInt(process.env.SMTP_PORT || "587");
       const smtpUser = process.env.SMTP_USER;
@@ -178,12 +218,12 @@ async function startServer() {
             </div>
           `,
         });
-        console.log(`Password reset email sent successfully to ${email}`);
+        console.log(`Password reset email sent successfully via SMTP to ${email}`);
       } else {
-        console.log("SMTP environment variables not fully configured. Email sending skipped (code printed to console).");
+        console.log("Resend API key and SMTP environment variables not fully configured. Email sending skipped (code printed to console).");
       }
     } catch (mailErr) {
-      console.error("Failed to send reset email via SMTP:", mailErr);
+      console.error("Failed to send reset email:", mailErr);
     }
 
     res.json({ success: true, message: "Verification code sent to your admin email address." });
